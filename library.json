@@ -1,0 +1,24 @@
+{
+  "name": "SHIOpenhabRest",
+  "description": "An implementation of SHIOpenhabRest for SHIT",
+  "keywords": [
+    "SmartHome"
+  ],
+  "authors": [
+    {
+      "name": "Karsten Becker",
+      "email": "kb@shi.technology",
+      "url": "https://shi.technology",
+      "maintainer": true
+    }
+  ],
+  "version": "0.2.2",
+  "frameworks": "arduino",
+  "platforms": "espressif32",
+  "dependencies": {
+    "WiFi": "1.0",
+    "WiFiClientSecure": "1.0",
+    "HTTPClient": "1.2",
+    "SmartHomeIntegrationTech": "^0.2.0"
+  }
+}
