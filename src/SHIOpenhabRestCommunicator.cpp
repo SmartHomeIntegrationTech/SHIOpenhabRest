@@ -13,13 +13,6 @@
 #include "SHIHardware.h"
 #include "SHISensor.h"
 
-namespace {
-
-const int CONNECT_TIMEOUT = 500;
-const int DATA_TIMEOUT = 1000;
-const String OHREST = "OpenhabRest";
-}  // namespace
-
 void SHI::OpenhabRestCommunicator::newReading(
     const SHI::MeasurementBundle &reading) {
   if (!isConnected) {
@@ -29,7 +22,7 @@ void SHI::OpenhabRestCommunicator::newReading(
   SHI::hw->feedWatchdog();
   for (auto &&data : reading.data) {
     if (data.getDataState() == SHI::MeasurementDataState::VALID) {
-      uploadInfo(data.getMetaData()->getQualifiedName("_"),
+      uploadInfo(data.getMetaData()->getQualifiedName(config.hierachySeperator),
                  data.stringRepresentation);
       SHI::hw->feedWatchdog();
     }
@@ -46,7 +39,7 @@ void SHI::OpenhabRestCommunicator::newStatus(const SHI::Measurement &status,
     missedConnectionCount++;
     return;
   }
-  uploadInfo(status.getMetaData()->getQualifiedName("_"),
+  uploadInfo(status.getMetaData()->getQualifiedName(config.hierachySeperator),
              status.stringRepresentation, true);
 }
 
@@ -57,10 +50,10 @@ void SHI::OpenhabRestCommunicator::uploadInfo(const std::string &item,
   int retryCount = 0;
   do {
     HTTPClient http;
-    http.begin(String("http://192.168.188.250:8080/rest/items/") + prefix +
-               item.c_str() + "/state");
-    http.setConnectTimeout(CONNECT_TIMEOUT);
-    http.setTimeout(DATA_TIMEOUT);
+    http.begin(String(config.baseURL.c_str()) + "/rest/items/" +
+               config.namePrefix.c_str() + item.c_str() + "/state");
+    http.setConnectTimeout(config.CONNECT_TIMEOUT);
+    http.setTimeout(config.DATA_TIMEOUT);
     int httpCode = http.PUT(String(value.c_str()));
     printError(&http, httpCode);
     http.end();
@@ -68,7 +61,7 @@ void SHI::OpenhabRestCommunicator::uploadInfo(const std::string &item,
       return;  // Either return early or try until success
     retryCount++;
     SHI::hw->feedWatchdog();
-  } while (tryHard && retryCount < 15);
+  } while (tryHard && retryCount < config.statusRetryCount);
 }
 
 void SHI::OpenhabRestCommunicator::printError(HTTPClient *http, int httpCode) {
